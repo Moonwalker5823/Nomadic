@@ -1,0 +1,114 @@
+:root {
+  --gold: #D4AF37;
+  --gold-dim: #a88a25;
+  --red: #C41E3A;
+  --bg: #0a0a0a;
+  --bg-2: #0f0f0f;
+  --bg-3: #111;
+  --border: #1e1e1e;
+  --border-2: #2a2a2a;
+  --text: #ffffff;
+  --text-dim: #888888;
+  --text-muted: #444444;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* Utility */
+.section-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 8vw, 80px);
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-align: center;
+  line-height: 1;
+}
+
+.section-rule {
+  width: 80px;
+  height: 2px;
+  background: var(--gold);
+  margin: 12px auto 56px;
+}
+
+section {
+  padding: 100px 5vw;
+}
+
+/* Buttons */
+.btn-gold {
+  background: var(--gold);
+  color: #000;
+  border: none;
+  padding: 14px 36px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-gold:hover {
+  background: #e8c84a;
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold);
+  padding: 14px 36px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+.btn-outline:hover {
+  background: var(--gold);
+  color: #000;
+  transform: translateY(-1px);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* Barber pole keyframes */
+@keyframes poleScroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 60px; }
+}
+
+@keyframes poleScrollDown {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 80px; }
+}
+
+/* Form inputs global */
+input, select, textarea {
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+}

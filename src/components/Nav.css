@@ -1,0 +1,173 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 5vw;
+  transition: background 0.3s, backdrop-filter 0.3s, border-color 0.3s;
+  border-bottom: 1px solid transparent;
+}
+
+.nav--scrolled {
+  background: rgba(10,10,10,0.96);
+  backdrop-filter: blur(12px);
+  border-bottom-color: #1a1a1a;
+}
+
+/* Brand */
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav__badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.nav__badge-pole {
+  width: 100%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    -45deg,
+    #C41E3A 0px, #C41E3A 4px,
+    #fff 4px, #fff 8px,
+    #1a3a8a 8px, #1a3a8a 12px,
+    #fff 12px, #fff 16px
+  );
+  animation: poleScroll 1s linear infinite;
+}
+
+.nav__brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 4px;
+  color: var(--gold);
+}
+
+/* Desktop links */
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav__link {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #999;
+  text-decoration: none;
+  transition: color 0.2s;
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.nav__link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+
+.nav__link:hover,
+.nav__link--active {
+  color: #fff;
+}
+
+.nav__link--active::after,
+.nav__link:hover::after {
+  transform: scaleX(1);
+}
+
+.nav__cta {
+  text-decoration: none;
+  font-size: 14px;
+  letter-spacing: 3px;
+  padding: 10px 24px;
+}
+
+/* Hamburger */
+.nav__hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.nav__hamburger span {
+  display: block;
+  width: 24px;
+  height: 1.5px;
+  background: #fff;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.nav__hamburger--open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.nav__hamburger--open span:nth-child(2) { opacity: 0; }
+.nav__hamburger--open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+/* Mobile menu */
+.nav__mobile {
+  display: none;
+  position: fixed;
+  top: 61px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #050505;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  transform: translateY(-100%);
+  transition: transform 0.4s cubic-bezier(0.76,0,0.24,1);
+  z-index: 999;
+}
+
+.nav__mobile--open {
+  transform: translateY(0);
+}
+
+.nav__mobile-link {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 6px;
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav__mobile-link:hover { color: var(--gold); }
+
+.nav__mobile-cta {
+  text-decoration: none;
+  font-size: 18px;
+  letter-spacing: 4px;
+}
+
+@media (max-width: 768px) {
+  .nav__links { display: none; }
+  .nav__hamburger { display: flex; }
+  .nav__mobile { display: flex; }
+}

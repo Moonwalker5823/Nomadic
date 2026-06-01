@@ -1,0 +1,106 @@
+.prices {
+  background: var(--bg);
+}
+
+.prices__sub {
+  text-align: center;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+.prices__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.prices__card {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.2s;
+  cursor: default;
+}
+
+.prices__card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.prices__card-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gold);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.25s;
+}
+
+.prices__card:hover .prices__card-bar {
+  transform: scaleY(1);
+}
+
+.prices__card-inner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prices__name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.prices__duration {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #555;
+}
+
+.prices__name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.prices__price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+.prices__note {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-top: 48px;
+  font-style: italic;
+}
+
+@media (max-width: 900px) {
+  .prices__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 520px) {
+  .prices__grid { grid-template-columns: 1fr; }
+}
