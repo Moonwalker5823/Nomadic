@@ -7,10 +7,15 @@
  */
 
 const SRC = '/clippers.mp3'
-const VOLUME = 0.55
+/** The source recording is very quiet (~0.009 RMS, roughly 15x below a
+ *  normal level), and HTMLAudioElement.volume caps at 1. So the element is
+ *  routed through a GainNode, which can amplify past unity. */
+const GAIN = 11
 const FADE_MS = 320
 
 let el = null
+let ctx = null
+let gainNode = null
 
 function getEl() {
   if (typeof Audio === 'undefined') return null
@@ -30,21 +35,43 @@ export function preloadClippers() {
   if (a) { try { a.load() } catch { /* nothing to do */ } }
 }
 
-function fadeOut(audio, ms) {
-  const steps = 12
-  const startVol = audio.volume
-  let i = 0
-  const timer = setInterval(() => {
-    i++
-    audio.volume = Math.max(0, startVol * (1 - i / steps))
-    if (i >= steps) {
-      clearInterval(timer)
-      audio.pause()
-      audio.currentTime = 0
-      audio.volume = startVol
-    }
-  }, ms / steps)
-  return timer
+/**
+ * Build the amplification graph once. Connecting a media element to a
+ * Web Audio context reroutes its output through the graph, so this must
+ * happen exactly once per element.
+ */
+async function ensureGraph(audio) {
+  const AC = window.AudioContext || window.webkitAudioContext
+  if (!AC) return false
+  if (!ctx) ctx = new AC()
+  if (ctx.state === 'suspended') {
+    try { await ctx.resume() } catch { /* still blocked */ }
+  }
+  if (ctx.state !== 'running') return false
+  if (!gainNode) {
+    const src = ctx.createMediaElementSource(audio)
+    gainNode = ctx.createGain()
+    gainNode.gain.value = GAIN
+    // Catches peaks the boost might push past 0 dBFS.
+    const limiter = ctx.createDynamicsCompressor()
+    limiter.threshold.value = -3
+    limiter.ratio.value = 12
+    limiter.attack.value = 0.003
+    src.connect(gainNode).connect(limiter).connect(ctx.destination)
+  }
+  return true
+}
+
+function fadeOut(ms) {
+  if (!gainNode || !ctx) return null
+  const t = ctx.currentTime
+  gainNode.gain.cancelScheduledValues(t)
+  gainNode.gain.setValueAtTime(gainNode.gain.value, t)
+  gainNode.gain.linearRampToValueAtTime(0.0001, t + ms / 1000)
+  return setTimeout(() => {
+    if (el) { el.pause(); el.currentTime = 0 }
+    if (gainNode && ctx) gainNode.gain.setValueAtTime(GAIN, ctx.currentTime)
+  }, ms)
 }
 
 /**
@@ -59,7 +86,12 @@ export async function playClippers(duration = 3) {
   if (!audio) return null
 
   audio.currentTime = 0
-  audio.volume = VOLUME
+  audio.volume = 1 // level is handled by the gain node
+
+  const ready = await ensureGraph(audio)
+  if (!ready) return null // audio still blocked
+
+  gainNode.gain.setValueAtTime(GAIN, ctx.currentTime)
 
   try {
     await audio.play()
@@ -70,12 +102,12 @@ export async function playClippers(duration = 3) {
   // Fade and stop at the end of the cut.
   let fadeTimer = null
   const endTimer = setTimeout(() => {
-    fadeTimer = fadeOut(audio, FADE_MS)
+    fadeTimer = fadeOut(FADE_MS)
   }, Math.max(0, duration * 1000 - FADE_MS))
 
   return function stop() {
     clearTimeout(endTimer)
-    if (fadeTimer) clearInterval(fadeTimer)
-    fadeOut(audio, 140)
+    if (fadeTimer) clearTimeout(fadeTimer)
+    fadeOut(140)
   }
 }

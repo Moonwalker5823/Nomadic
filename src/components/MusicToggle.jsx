@@ -15,16 +15,32 @@ export default function MusicToggle() {
   const [hint, setHint] = useState(false)
   const startedOnce = useRef(false)
 
-  // Show the "tap for vibes" nudge once per session, after the visitor
-  // has had a moment to look at the page.
+  // Start automatically unless the visitor previously turned it off.
+  // Entering the site is itself a click, so audio is usually unlocked by
+  // the time this mounts; if it isn't, retry on the next interaction.
   useEffect(() => {
-    if (sessionStorage.getItem('nomadic_music_hinted')) return
-    const t = setTimeout(() => {
-      setHint(true)
-      sessionStorage.setItem('nomadic_music_hinted', '1')
-      setTimeout(() => setHint(false), 5000)
-    }, 3500)
-    return () => clearTimeout(t)
+    if (localStorage.getItem('nomadic_music') === '0') return
+    let cancelled = false
+
+    const tryStart = async () => {
+      if (cancelled || startedOnce.current) return
+      const ok = await startTrack(0.5)
+      if (ok && !cancelled) {
+        startedOnce.current = true
+        setPlaying(true)
+        window.removeEventListener('pointerdown', tryStart)
+        window.removeEventListener('keydown', tryStart)
+      }
+    }
+
+    tryStart()
+    window.addEventListener('pointerdown', tryStart)
+    window.addEventListener('keydown', tryStart)
+    return () => {
+      cancelled = true
+      window.removeEventListener('pointerdown', tryStart)
+      window.removeEventListener('keydown', tryStart)
+    }
   }, [])
 
   // Stop the audio graph if this ever unmounts.
@@ -53,6 +69,7 @@ export default function MusicToggle() {
       {hint && !playing && (
         <span className="music__hint">Tap for vibes</span>
       )}
+
       <button
         className={`music__btn${playing ? ' music__btn--on' : ''}`}
         onClick={toggle}
