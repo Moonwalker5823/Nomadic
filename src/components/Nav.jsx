@@ -38,35 +38,40 @@ export default function Nav() {
   }, [open])
 
   return (
-    <nav className={`nav${scrolled ? ' nav--scrolled' : ''}`}>
-      <a href="#home" className="nav__brand" onClick={() => setOpen(false)}>
-        <div className="nav__badge">
-          <div className="nav__badge-pole" />
+    <>
+      <nav className={`nav${scrolled ? ' nav--scrolled' : ''}`}>
+        <a href="#home" className="nav__brand" onClick={() => setOpen(false)}>
+          <div className="nav__badge">
+            <div className="nav__badge-pole" />
+          </div>
+          <span className="nav__brand-name">NOMADIC</span>
+        </a>
+
+        <div className="nav__links">
+          {LINKS.map(l => (
+            <a
+              key={l.label}
+              href={l.href}
+              className={`nav__link${active === l.href.slice(1) ? ' nav__link--active' : ''}`}
+            >
+              {l.label}
+            </a>
+          ))}
+          <a href="#booking" className="btn-gold nav__cta">Book Now</a>
         </div>
-        <span className="nav__brand-name">NOMADIC</span>
-      </a>
 
-      <div className="nav__links">
-        {LINKS.map(l => (
-          <a
-            key={l.label}
-            href={l.href}
-            className={`nav__link${active === l.href.slice(1) ? ' nav__link--active' : ''}`}
-          >
-            {l.label}
-          </a>
-        ))}
-        <a href="#booking" className="btn-gold nav__cta">Book Now</a>
-      </div>
+        <button
+          className={`nav__hamburger${open ? ' nav__hamburger--open' : ''}`}
+          onClick={() => setOpen(o => !o)}
+          aria-label="Menu"
+          aria-expanded={open}
+        >
+          <span /><span /><span />
+        </button>
+      </nav>
 
-      <button
-        className={`nav__hamburger${open ? ' nav__hamburger--open' : ''}`}
-        onClick={() => setOpen(o => !o)}
-        aria-label="Menu"
-      >
-        <span /><span /><span />
-      </button>
-
+      {/* Rendered outside <nav> — backdrop-filter on .nav--scrolled would
+          otherwise become the containing block for this fixed element. */}
       <div className={`nav__mobile${open ? ' nav__mobile--open' : ''}`}>
         {LINKS.map(l => (
           <a
@@ -82,6 +87,6 @@ export default function Nav() {
           Book Now
         </a>
       </div>
-    </nav>
+    </>
   )
 }

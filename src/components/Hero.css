@@ -88,7 +88,9 @@
   width: clamp(260px, 32vw, 480px);
   height: clamp(260px, 32vw, 480px);
   object-fit: contain;
-  /* Subtle pulse glow */
+  /* The source JPG has a solid black backing — screen blend drops it
+     out against the dark page so only the badge reads. */
+  mix-blend-mode: screen;
   animation: logo-pulse 4s ease-in-out infinite;
   filter: drop-shadow(0 0 24px rgba(212,175,55,0.25));
 }

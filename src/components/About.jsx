@@ -1,16 +1,21 @@
 import React from 'react'
 import { useApp } from '../context/AppContext'
+import { useReveal } from '../hooks/useReveal'
 import './About.css'
 
 export default function About() {
   const { bio } = useApp()
+  const headRef = useReveal()
+  const gridRef = useReveal()
 
   return (
     <section className="about" id="about">
-      <h2 className="section-heading">THE BARBER</h2>
-      <div className="section-rule" />
+      <div className="reveal" ref={headRef}>
+        <h2 className="section-heading">THE BARBER</h2>
+        <div className="section-rule" />
+      </div>
 
-      <div className="about__grid">
+      <div className="about__grid reveal" ref={gridRef}>
         <div className="about__photo-wrap">
           <img
             src="Pics/kevin-jones.jpg"

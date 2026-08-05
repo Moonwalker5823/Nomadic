@@ -21,18 +21,38 @@
 }
 
 .prices__card {
-  background: var(--bg-3);
+  background: linear-gradient(145deg, #131313, #0e0e0e);
   border: 1px solid var(--border);
   padding: 28px 24px;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.25s, transform 0.2s;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
   cursor: default;
 }
 
 .prices__card:hover {
   border-color: var(--gold);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.15);
+}
+
+/* Ghosted index number in the corner */
+.prices__num {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  line-height: 1;
+  color: #fff;
+  opacity: 0.04;
+  transition: opacity 0.25s, color 0.25s;
+  pointer-events: none;
+}
+
+.prices__card:hover .prices__num {
+  opacity: 0.16;
+  color: var(--gold);
 }
 
 .prices__card-bar {

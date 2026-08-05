@@ -113,12 +113,48 @@
   color: var(--gold);
 }
 
+.booking__success-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  letter-spacing: 4px;
+  color: #fff;
+}
+
 .booking__success-msg {
-  font-size: 18px;
-  color: #ccc;
+  font-size: 17px;
+  color: #999;
   text-align: center;
-  max-width: 400px;
+  max-width: 420px;
   line-height: 1.6;
+  margin-top: -12px;
+}
+
+/* Read-only recap of what will be sent */
+.booking__summary {
+  background: #121212;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  padding: 20px 24px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  line-height: 1.9;
+  color: #aaa;
+  white-space: pre-line;
+  text-align: left;
+  max-width: 420px;
+  width: 100%;
+}
+
+.booking__send-btns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.booking__send {
+  text-decoration: none;
+  display: inline-block;
 }
 
 @media (max-width: 600px) {

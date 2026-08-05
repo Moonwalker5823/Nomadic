@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useApp } from '../context/AppContext'
+import { useReveal } from '../hooks/useReveal'
 import './Picks.css'
 
 export default function Picks() {
   const { gallery } = useApp()
   const [lightbox, setLightbox] = useState(null) // index or null
+  const headRef = useReveal()
+  const gridRef = useReveal()
 
   const close = useCallback(() => setLightbox(null), [])
   const prev = useCallback(() => setLightbox(i => (i - 1 + gallery.length) % gallery.length), [gallery.length])
@@ -27,10 +30,12 @@ export default function Picks() {
 
   return (
     <section className="picks" id="picks">
-      <h2 className="section-heading">THE CUTZ</h2>
-      <div className="section-rule" />
+      <div className="reveal" ref={headRef}>
+        <h2 className="section-heading">THE CUTZ</h2>
+        <div className="section-rule" />
+      </div>
 
-      <div className="picks__grid">
+      <div className="picks__grid reveal" ref={gridRef}>
         {gallery.map((src, i) => (
           <div key={src + i} className="picks__card" onClick={() => setLightbox(i)}>
             <img src={src} alt={`Cut ${i + 1}`} loading="lazy" />

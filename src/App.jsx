@@ -10,6 +10,8 @@ import Booking from './components/Booking'
 import Footer from './components/Footer'
 import Admin from './components/Admin'
 import PasswordModal from './components/PasswordModal'
+import Marquee from './components/Marquee'
+import Stats from './components/Stats'
 
 const introSeen = sessionStorage.getItem('nomadic_intro_seen')
 
@@ -27,7 +29,10 @@ function Site() {
           <Nav />
           <main>
             <Hero />
+            <Marquee />
+            <Stats />
             <Picks />
+            <Marquee reverse />
             <Prices />
             <About />
             <Booking />

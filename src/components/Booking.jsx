@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
+import { formatBooking, smsHref, mailtoHref, SQUIRE_URL, KEVIN_PHONE_DISPLAY } from '../utils/contact'
 import './Booking.css'
 
 export default function Booking() {
@@ -31,13 +32,31 @@ export default function Booking() {
   }
 
   if (submitted) {
+    const body = formatBooking(form)
     return (
       <section className="booking" id="booking">
         <h2 className="section-heading">BOOK YOUR CUT</h2>
         <div className="section-rule" />
         <div className="booking__success">
           <div className="booking__check">✓</div>
-          <p className="booking__success-msg">Request sent! Kevin will confirm your appointment shortly.</p>
+          <h3 className="booking__success-title">One last step</h3>
+          <p className="booking__success-msg">
+            Your request is ready. Send it to Kevin and he&rsquo;ll confirm your time.
+          </p>
+
+          <div className="booking__summary">{body}</div>
+
+          <div className="booking__send-btns">
+            <a href={smsHref(body)} className="btn-gold booking__send">Send as Text</a>
+            <a href={mailtoHref(body, form.name)} className="btn-outline booking__send">Send as Email</a>
+          </div>
+
+          <p className="booking__square-note">
+            Or book instantly on{' '}
+            <a href={SQUIRE_URL} target="_blank" rel="noreferrer">Square →</a>
+            <br />
+            Questions? Call or text {KEVIN_PHONE_DISPLAY}
+          </p>
         </div>
       </section>
     )

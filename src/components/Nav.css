@@ -131,10 +131,12 @@
 .nav__mobile {
   display: none;
   position: fixed;
-  top: 61px;
+  top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: 100vh;
+  height: 100dvh;
+  padding-top: 61px;
   background: #050505;
   flex-direction: column;
   align-items: center;

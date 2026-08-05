@@ -16,6 +16,30 @@
   transform: translateY(-100%);
 }
 
+/* Sound toggle */
+.intro__mute {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: none;
+  border: 1px solid #2a2a2a;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  z-index: 5;
+}
+
+.intro__mute:hover {
+  color: #D4AF37;
+  border-color: #D4AF37;
+}
+
 /* Logo */
 .intro__logo-wrap {
   position: relative;
@@ -28,8 +52,8 @@
   height: 100%;
   object-fit: contain;
   display: block;
-  /* Logo starts fully hidden — mask covers it */
-  opacity: 1;
+  /* Source JPG is matted on black — screen blend removes the backing. */
+  mix-blend-mode: screen;
 }
 
 /* Black mask slides from right to left, revealing logo as clippers pass */
