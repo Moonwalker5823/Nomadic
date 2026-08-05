@@ -45,7 +45,12 @@ async function ensureGraph(audio) {
   if (!AC) return false
   if (!ctx) ctx = new AC()
   if (ctx.state === 'suspended') {
-    try { await ctx.resume() } catch { /* still blocked */ }
+    // resume() on a blocked context never settles — it waits indefinitely
+    // for a gesture rather than rejecting. Race it so we can't hang.
+    await Promise.race([
+      ctx.resume().catch(() => {}),
+      new Promise(r => setTimeout(r, 200)),
+    ])
   }
   if (ctx.state !== 'running') return false
   if (!gainNode) {
@@ -88,16 +93,16 @@ export async function playClippers(duration = 3) {
   audio.currentTime = 0
   audio.volume = 1 // level is handled by the gain node
 
-  const ready = await ensureGraph(audio)
-  if (!ready) return null // audio still blocked
-
-  gainNode.gain.setValueAtTime(GAIN, ctx.currentTime)
-
+  // play() is the gate: unlike resume(), it rejects promptly when blocked.
   try {
     await audio.play()
   } catch {
-    return null // autoplay blocked — caller should retry after a gesture
+    return null // caller should retry after a gesture
   }
+
+  // Playback started, so a gesture exists and the graph can be built safely.
+  await ensureGraph(audio)
+  if (gainNode && ctx) gainNode.gain.setValueAtTime(GAIN, ctx.currentTime)
 
   // Fade and stop at the end of the cut.
   let fadeTimer = null

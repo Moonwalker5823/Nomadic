@@ -10,37 +10,54 @@ const CLIPPER_RUN = CUT_DELAY + CUT_DUR + 0.3
 export default function Intro({ onDone }) {
   const [leaving, setLeaving] = useState(false)
   const [muted, setMuted] = useState(() => localStorage.getItem('nomadic_muted') === '1')
-  // The cut is gated so it can be paired with sound. Browsers refuse to play
-  // audio without a user gesture, and the only gesture the old intro had was
-  // "Enter Site" — which ended it. So: try to start on load, and if audio is
-  // blocked, ask for one tap and run the cut and the buzz together.
+  // The cut is held back so it can run together with the clipper buzz.
+  // Browsers won't play audio without a gesture, so if playback is blocked
+  // we ask for one tap and fire both at once.
   const [started, setStarted] = useState(false)
   const [needsTap, setNeedsTap] = useState(false)
   const stopRef = useRef(null)
+  const settledRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
 
     ;(async () => {
-      if (muted) { setStarted(true); return }
+      if (muted) { settledRef.current = true; setStarted(true); return }
       const stop = await playClippers(CLIPPER_RUN)
       if (cancelled) { stop?.(); return }
+      settledRef.current = true
       if (stop) {
         stopRef.current = stop
         setStarted(true)
       } else {
-        setNeedsTap(true) // blocked — wait for a real gesture
+        setNeedsTap(true) // blocked — offer the tap
       }
     })()
 
-    return () => { cancelled = true; stopRef.current?.() }
+    // Failsafe: if audio never resolves either way, run the cut anyway
+    // rather than leaving the visitor staring at a frozen badge.
+    const failsafe = setTimeout(() => {
+      if (!cancelled && !settledRef.current) setStarted(true)
+    }, 2500)
+
+    return () => {
+      cancelled = true
+      clearTimeout(failsafe)
+      stopRef.current?.()
+    }
   }, [muted])
 
-  const beginCut = async () => {
+  const beginCut = () => {
     if (started) return
     setNeedsTap(false)
-    if (!muted) stopRef.current = await playClippers(CLIPPER_RUN)
+    // Start the cut immediately and let audio catch up. Awaiting playback
+    // here meant any audio failure silently swallowed the animation.
     setStarted(true)
+    if (!muted) {
+      playClippers(CLIPPER_RUN)
+        .then(stop => { if (stop) stopRef.current = stop })
+        .catch(() => {})
+    }
   }
 
   const toggleMute = () => {
@@ -64,7 +81,6 @@ export default function Intro({ onDone }) {
   return (
     <div
       className={`intro${leaving ? ' intro--leaving' : ''}${started ? ' intro--cutting' : ''}`}
-      onPointerDown={needsTap ? beginCut : undefined}
     >
       {/* Backdrop: skyline + the warm pool of light behind the badge.
           Kept as a real element (not ::after) so it paints below the
@@ -75,7 +91,6 @@ export default function Intro({ onDone }) {
           alt=""
           className="intro__city"
           aria-hidden="true"
-          fetchPriority="high"
         />
         <span className="intro__city-veil" />
         <span className="intro__glow" />
