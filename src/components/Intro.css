@@ -1,50 +1,112 @@
+/* Shared timeline — the clipper travel and the logo reveal both read these,
+   which is what keeps the blade edge sitting on the reveal boundary. */
 .intro {
+  --cut-delay: 0.6s;
+  --cut-dur: 2.2s;
+  --cut-ease: cubic-bezier(0.65, 0.02, 0.35, 1);
+
   position: fixed;
   inset: 0;
-  background: #000;
+  background: #070707;
   z-index: 10000;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 36px;
-  transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.76, 0, 0.24, 1);
   overflow: hidden;
 }
 
-.intro--leaving {
-  transform: translateY(-100%);
+/* Matching grain so the intro reads as part of the site */
+.intro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+/* Faint gold pool behind the badge */
+.intro::after {
+  content: '';
+  position: absolute;
+  width: 620px;
+  height: 620px;
+  max-width: 90vw;
+  max-height: 90vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.10), transparent 65%);
+  opacity: 0;
+  animation: intro-glow 1.2s calc(var(--cut-delay) + var(--cut-dur) - 0.6s) ease forwards;
+  pointer-events: none;
+}
+
+@keyframes intro-glow { to { opacity: 1; } }
+
+.intro--leaving {
+  opacity: 0;
+  transform: scale(1.04);
+}
+
+/* Corner frame */
+.intro__corner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(212,175,55,0.5);
+  opacity: 0;
+  animation: fade-in 0.8s 0.2s forwards;
+}
+.intro__corner--tl { top: 26px; left: 26px; border-right: 0; border-bottom: 0; }
+.intro__corner--tr { top: 26px; right: 26px; border-left: 0; border-bottom: 0; }
+.intro__corner--bl { bottom: 26px; left: 26px; border-right: 0; border-top: 0; }
+.intro__corner--br { bottom: 26px; right: 26px; border-left: 0; border-top: 0; }
+
+@keyframes fade-in { to { opacity: 1; } }
 
 /* Sound toggle */
 .intro__mute {
   position: absolute;
   top: 24px;
-  right: 24px;
-  background: none;
-  border: 1px solid #2a2a2a;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  right: 68px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #555;
+  background: none;
+  border: 1px solid #262626;
+  border-radius: 50%;
+  color: #4a4a4a;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
-  z-index: 5;
+  z-index: 6;
+}
+.intro__mute:hover { color: var(--gold); border-color: var(--gold); }
+
+/* Stage */
+.intro__stage {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 0 24px;
 }
 
-.intro__mute:hover {
-  color: #D4AF37;
-  border-color: #D4AF37;
-}
-
-/* Logo */
 .intro__logo-wrap {
   position: relative;
-  width: min(420px, 80vw);
+  width: min(360px, 74vw);
   aspect-ratio: 1;
+  /* Reveal is a left-to-right wipe of this whole box. Using clip-path on the
+     wrapper (not an overlay div) keeps it on the compositor. */
+  clip-path: inset(0 100% 0 0);
+  animation: intro-reveal var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards;
+}
+
+@keyframes intro-reveal {
+  to { clip-path: inset(0 0% 0 0); }
 }
 
 .intro__logo {
@@ -52,95 +114,84 @@
   height: 100%;
   object-fit: contain;
   display: block;
-  /* Source JPG is matted on black — screen blend removes the backing. */
+  /* Source JPG is matted on black — screen blend drops the backing. */
   mix-blend-mode: screen;
 }
 
-/* Black mask slides from right to left, revealing logo as clippers pass */
-.intro__logo-mask {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  transform-origin: right center;
-  animation: mask-reveal 2.4s 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes mask-reveal {
-  0%   { clip-path: inset(0 0% 0 0); }    /* fully hidden */
-  100% { clip-path: inset(0 100% 0 0); }  /* fully revealed */
-}
-
-/* Clippers ride slightly ahead of the reveal */
+/* Clippers ride the reveal edge. Same duration/delay/easing as the wipe,
+   and translateX so it composites instead of triggering layout. */
 .intro__clippers {
   position: absolute;
-  /* vertically centered on the logo */
   top: 50%;
-  /* starts off left edge */
-  left: -90px;
-  transform: translateY(-50%);
-  animation: clippers-ride 2.4s 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  z-index: 2;
-  filter: drop-shadow(0 0 8px rgba(212,175,55,0.6));
+  left: 0;
+  margin-top: -17px;
+  transform: translateX(-76px);
+  animation: intro-clip-travel var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards;
+  filter: drop-shadow(0 0 10px rgba(212,175,55,0.45));
+  will-change: transform;
+  z-index: 3;
 }
 
-@keyframes clippers-ride {
-  0%   { left: -90px; }
-  100% { left: calc(100vw + 20px); }
-}
-
-/* After reveal: logo glows */
-.intro__logo-wrap::after {
-  content: '';
-  position: absolute;
-  inset: -20px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 rgba(212,175,55,0);
-  animation: logo-glow 0.8s 3.0s forwards;
-  pointer-events: none;
-}
-
-@keyframes logo-glow {
-  to { box-shadow: 0 0 60px rgba(212,175,55,0.35), 0 0 120px rgba(212,175,55,0.15); }
+@keyframes intro-clip-travel {
+  from { transform: translateX(-76px); }
+  to   { transform: translateX(min(360px, 74vw)); }
 }
 
 /* Tagline */
 .intro__tagline {
   font-family: 'Barlow', sans-serif;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(15px, 2.5vw, 21px);
-  color: #888;
-  letter-spacing: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #6d6d6d;
   opacity: 0;
-  animation: fade-up 0.8s 3.2s forwards;
+  animation: rise 0.7s calc(var(--cut-delay) + var(--cut-dur) - 0.2s) ease forwards;
 }
 
-/* Enter button */
+/* Enter button — matches the site's outline button language */
 .intro__enter {
   background: transparent;
-  border: 1.5px solid #D4AF37;
-  color: #D4AF37;
+  border: 1px solid rgba(212,175,55,0.55);
+  color: var(--gold);
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
+  font-size: 17px;
   letter-spacing: 5px;
-  padding: 14px 52px;
+  padding: 13px 46px;
   cursor: pointer;
   opacity: 0;
-  animation: fade-up 0.8s 3.8s forwards, pulse-btn 2s 4.6s ease-in-out infinite;
-  transition: background 0.2s, color 0.2s;
+  animation: rise 0.7s calc(var(--cut-delay) + var(--cut-dur) + 0.1s) ease forwards;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
 }
 
 .intro__enter:hover {
-  background: #D4AF37;
+  background: var(--gold);
+  border-color: var(--gold);
   color: #000;
 }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(14px); }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse-btn {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.03); }
+@media (max-width: 480px) {
+  .intro__corner { width: 18px; height: 18px; }
+  .intro__corner--tl, .intro__corner--tr { top: 18px; }
+  .intro__corner--bl, .intro__corner--br { bottom: 18px; }
+  .intro__corner--tl, .intro__corner--bl { left: 18px; }
+  .intro__corner--tr, .intro__corner--br { right: 18px; }
+  .intro__mute { top: 16px; right: 52px; }
+  .intro__tagline { letter-spacing: 4px; font-size: 11px; }
+  .intro__enter { padding: 12px 36px; letter-spacing: 4px; }
+}
+
+/* Reduced motion: show the finished state, skip the cut. */
+@media (prefers-reduced-motion: reduce) {
+  .intro__logo-wrap { clip-path: none; animation: none; }
+  .intro__clippers { display: none; }
+  .intro__tagline,
+  .intro__enter,
+  .intro__corner { opacity: 1; animation: none; }
+  .intro::after { opacity: 1; animation: none; }
 }

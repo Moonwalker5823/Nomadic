@@ -31,21 +31,8 @@
   height: 28px;
   border-radius: 50%;
   border: 1.5px solid var(--gold);
-  overflow: hidden;
   flex-shrink: 0;
-}
-
-.nav__badge-pole {
-  width: 100%;
-  height: 200%;
-  background: repeating-linear-gradient(
-    -45deg,
-    #C41E3A 0px, #C41E3A 4px,
-    #fff 4px, #fff 8px,
-    #1a3a8a 8px, #1a3a8a 12px,
-    #fff 12px, #fff 16px
-  );
-  animation: poleScroll 1s linear infinite;
+  box-shadow: 0 0 10px rgba(212,175,55,0.25);
 }
 
 .nav__brand-name {

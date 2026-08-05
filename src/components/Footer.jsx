@@ -17,8 +17,8 @@ export default function Footer({ onAdminTrigger }) {
     <footer className="footer">
       <div className="footer__inner">
         <div className="footer__logo" onClick={handleLogoClick} title="Admin">
-          <div className="footer__badge">
-            <div className="footer__pole" />
+          <div className="footer__badge pole">
+            <div className="pole__stripes" />
           </div>
           <span className="footer__name">NOMADIC</span>
         </div>

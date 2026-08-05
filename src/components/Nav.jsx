@@ -44,8 +44,8 @@ export default function Nav() {
     <>
       <nav className={`nav${scrolled ? ' nav--scrolled' : ''}`}>
         <a href="#home" className="nav__brand" onClick={() => setOpen(false)}>
-          <div className="nav__badge">
-            <div className="nav__badge-pole" />
+          <div className="nav__badge pole">
+            <div className="pole__stripes" />
           </div>
           <span className="nav__brand-name">NOMADIC</span>
         </a>
