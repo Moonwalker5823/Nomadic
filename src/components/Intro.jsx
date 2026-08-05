@@ -10,29 +10,38 @@ const CLIPPER_RUN = CUT_DELAY + CUT_DUR + 0.3
 export default function Intro({ onDone }) {
   const [leaving, setLeaving] = useState(false)
   const [muted, setMuted] = useState(() => localStorage.getItem('nomadic_muted') === '1')
+  // The cut is gated so it can be paired with sound. Browsers refuse to play
+  // audio without a user gesture, and the only gesture the old intro had was
+  // "Enter Site" — which ended it. So: try to start on load, and if audio is
+  // blocked, ask for one tap and run the cut and the buzz together.
+  const [started, setStarted] = useState(false)
+  const [needsTap, setNeedsTap] = useState(false)
   const stopRef = useRef(null)
-  const playedRef = useRef(false)
 
   useEffect(() => {
-    if (muted) return
+    let cancelled = false
 
-    const start = () => {
-      if (playedRef.current) return
-      playedRef.current = true
-      stopRef.current = playClippers(CLIPPER_RUN)
-    }
+    ;(async () => {
+      if (muted) { setStarted(true); return }
+      const stop = await playClippers(CLIPPER_RUN)
+      if (cancelled) { stop?.(); return }
+      if (stop) {
+        stopRef.current = stop
+        setStarted(true)
+      } else {
+        setNeedsTap(true) // blocked — wait for a real gesture
+      }
+    })()
 
-    start()
-    // Autoplay is blocked until a gesture — fall back to first interaction.
-    window.addEventListener('pointerdown', start, { once: true })
-    window.addEventListener('keydown', start, { once: true })
-
-    return () => {
-      window.removeEventListener('pointerdown', start)
-      window.removeEventListener('keydown', start)
-      stopRef.current?.()
-    }
+    return () => { cancelled = true; stopRef.current?.() }
   }, [muted])
+
+  const beginCut = async () => {
+    if (started) return
+    setNeedsTap(false)
+    if (!muted) stopRef.current = await playClippers(CLIPPER_RUN)
+    setStarted(true)
+  }
 
   const toggleMute = () => {
     setMuted(m => {
@@ -53,7 +62,25 @@ export default function Intro({ onDone }) {
   }
 
   return (
-    <div className={`intro${leaving ? ' intro--leaving' : ''}`}>
+    <div
+      className={`intro${leaving ? ' intro--leaving' : ''}${started ? ' intro--cutting' : ''}`}
+      onPointerDown={needsTap ? beginCut : undefined}
+    >
+      {/* Backdrop: skyline + the warm pool of light behind the badge.
+          Kept as a real element (not ::after) so it paints below the
+          stage and the logo can blend against it. */}
+      <div className="intro__backdrop">
+        <img
+          src="/sandiego.jpg"
+          alt=""
+          className="intro__city"
+          aria-hidden="true"
+          fetchPriority="high"
+        />
+        <span className="intro__city-veil" />
+        <span className="intro__glow" />
+      </div>
+
       {/* Corner frame — echoes the site's gold rules */}
       <span className="intro__corner intro__corner--tl" />
       <span className="intro__corner intro__corner--tr" />
@@ -86,6 +113,21 @@ export default function Intro({ onDone }) {
         <div className="intro__logo-wrap">
           <img src="Pics/logo.jpg" alt="NOMADIC" className="intro__logo" />
 
+          {/* Black plate sitting ON TOP of the logo. The blade shaves this
+              away left-to-right, so the logo is uncovered rather than
+              faded in — that's what sells it as an actual cut. */}
+          <span className="intro__cover" />
+
+          {/* Glowing edge that rides the reveal boundary — the "cut" itself */}
+          <span className="intro__cutline" />
+
+          {/* Hair clippings thrown off by the blade */}
+          <span className="intro__bits" aria-hidden="true">
+            {Array.from({ length: 14 }, (_, i) => (
+              <i key={i} style={{ '--i': i }} />
+            ))}
+          </span>
+
           <div className="intro__clippers">
             <svg width="76" height="34" viewBox="0 0 76 34" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="6" width="52" height="22" rx="5" fill="#c9c9c9" />
@@ -107,6 +149,12 @@ export default function Intro({ onDone }) {
             </svg>
           </div>
         </div>
+
+        {needsTap && (
+          <button className="intro__tap" onClick={beginCut}>
+            Tap to Cut
+          </button>
+        )}
 
         <p className="intro__tagline">Sharp Cuts. San Diego.</p>
 

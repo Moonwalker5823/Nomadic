@@ -12,6 +12,7 @@ import Admin from './components/Admin'
 import PasswordModal from './components/PasswordModal'
 import Marquee from './components/Marquee'
 import Stats from './components/Stats'
+import MusicToggle from './components/MusicToggle'
 
 const introSeen = sessionStorage.getItem('nomadic_intro_seen')
 
@@ -40,6 +41,7 @@ function Site() {
           <Footer
             onAdminTrigger={() => setShowPwd(true)}
           />
+          <MusicToggle />
         </>
       )}
 

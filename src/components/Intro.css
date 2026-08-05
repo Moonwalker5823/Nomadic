@@ -26,19 +26,54 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Faint gold pool behind the badge */
-.intro::after {
-  content: '';
+/* Backdrop layer — paints under the stage so the logo's screen blend
+   has the skyline as its backdrop and the JPG matte drops out. */
+.intro__backdrop {
   position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Real San Diego skyline (Coronado view). Establishes the place before
+   the cut happens, so the city is the first thing you see. */
+.intro__city {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  animation: city-in 2.2s 0.15s ease forwards;
+}
+
+@keyframes city-in {
+  from { opacity: 0; transform: scale(1.08); }
+  to   { opacity: 0.62; transform: scale(1); }
+}
+
+/* Darkens the photo so the gold badge and type stay legible on top. */
+.intro__city-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.82) 55%, rgba(0,0,0,0.95) 100%),
+    linear-gradient(180deg, rgba(7,7,7,0.9) 0%, rgba(7,7,7,0.25) 40%, rgba(7,7,7,0.85) 100%);
+}
+
+/* Faint gold pool behind the badge */
+.intro__glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 620px;
   height: 620px;
   max-width: 90vw;
   max-height: 90vw;
+  margin: -310px 0 0 -310px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,175,55,0.10), transparent 65%);
+  background: radial-gradient(circle, rgba(212,175,55,0.12), transparent 65%);
   opacity: 0;
-  animation: intro-glow 1.2s calc(var(--cut-delay) + var(--cut-dur) - 0.6s) ease forwards;
-  pointer-events: none;
 }
 
 @keyframes intro-glow { to { opacity: 1; } }
@@ -87,7 +122,10 @@
 /* Stage */
 .intro__stage {
   position: relative;
-  z-index: 2;
+  /* Intentionally no z-index: adding one creates a stacking context, which
+     would cut the logo's `mix-blend-mode: screen` off from the backdrop
+     and leave the JPG's black matte showing as a box. DOM order already
+     paints this above .intro__backdrop. */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -99,14 +137,36 @@
   position: relative;
   width: min(360px, 74vw);
   aspect-ratio: 1;
-  /* Reveal is a left-to-right wipe of this whole box. Using clip-path on the
-     wrapper (not an overlay div) keeps it on the compositor. */
-  clip-path: inset(0 100% 0 0);
-  animation: intro-reveal var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards;
 }
 
-@keyframes intro-reveal {
-  to { clip-path: inset(0 0% 0 0); }
+/* The plate being cut away. Deliberately a touch lighter than the page and
+   carrying its own sheen + grain, so the eye registers it as a solid layer
+   covering the badge rather than as empty background. */
+.intro__cover {
+  position: absolute;
+  inset: -2%;
+  z-index: 2;
+  background:
+    linear-gradient(115deg, #1a1a1a 0%, #101010 42%, #141414 100%);
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+  clip-path: inset(0 0 0 0);
+  pointer-events: none;
+}
+
+/* Grain on the plate so it reads as a physical surface. */
+.intro__cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+}
+
+/* Shave it off from the left — the inset grows on the LEFT edge, so what
+   remains is the not-yet-cut portion on the right. */
+@keyframes intro-shave {
+  from { clip-path: inset(0 0 0 0); }
+  to   { clip-path: inset(0 0 0 100%); }
 }
 
 .intro__logo {
@@ -126,15 +186,120 @@
   left: 0;
   margin-top: -17px;
   transform: translateX(-76px);
-  animation: intro-clip-travel var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards;
   filter: drop-shadow(0 0 10px rgba(212,175,55,0.45));
   will-change: transform;
   z-index: 3;
 }
 
+/* Inner wrapper shakes so the travel and the vibration don't fight
+   over the same transform. */
+.intro__clippers > svg {
+  display: block;
+}
+
+@keyframes intro-clip-shake {
+  0%, 100% { transform: translateY(-0.6px) rotate(-0.5deg); }
+  50%      { transform: translateY(0.6px)  rotate(0.5deg); }
+}
+
 @keyframes intro-clip-travel {
   from { transform: translateX(-76px); }
   to   { transform: translateX(min(360px, 74vw)); }
+}
+
+/* Cut line — a hot gold edge travelling with the blade */
+.intro__cutline {
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(transparent, #ffe58a, #fff6d0, #ffe58a, transparent);
+  box-shadow: 0 0 12px 3px rgba(255,214,110,0.75);
+  transform: translateX(-4px);
+  opacity: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.intro--cutting .intro__cutline {
+  animation:
+    intro-cutline-travel var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards,
+    intro-cutline-fade   var(--cut-dur) var(--cut-delay) linear forwards;
+}
+
+@keyframes intro-cutline-travel {
+  from { transform: translateX(-4px); }
+  to   { transform: translateX(min(356px, 73vw)); }
+}
+
+@keyframes intro-cutline-fade {
+  0%   { opacity: 0; }
+  8%   { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Clippings flung off the blade as it passes */
+.intro__bits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.intro__bits i {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #d8b64a;
+  opacity: 0;
+  /* Each bit leaves a bit later, spread across the cut. */
+}
+
+/* Alternate the throw direction so it sprays, not streams. */
+.intro__bits i:nth-child(even) { --dir: -1; width: 2px; height: 2px; }
+.intro__bits i:nth-child(odd)  { --dir: 1; }
+
+@keyframes intro-bit {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--i) * 6%), 0) scale(1);
+  }
+  15% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform:
+      translate(calc(var(--i) * 6% + 14px), calc(var(--dir, 1) * 46px))
+      scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__clippers > svg { animation: none; }
+  .intro__cutline, .intro__bits { display: none; }
+}
+
+/* Shown only when the browser blocked audio — one tap runs the cut
+   and the clipper buzz together. */
+.intro__tap {
+  background: var(--gold);
+  border: none;
+  color: #000;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 5px;
+  padding: 14px 44px;
+  cursor: pointer;
+  animation: tap-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tap-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(212,175,55,0.5); }
+  50%      { transform: scale(1.04); box-shadow: 0 0 0 14px rgba(212,175,55,0); }
 }
 
 /* Tagline */
@@ -146,7 +311,6 @@
   text-transform: uppercase;
   color: #6d6d6d;
   opacity: 0;
-  animation: rise 0.7s calc(var(--cut-delay) + var(--cut-dur) - 0.2s) ease forwards;
 }
 
 /* Enter button — matches the site's outline button language */
@@ -160,7 +324,6 @@
   padding: 13px 46px;
   cursor: pointer;
   opacity: 0;
-  animation: rise 0.7s calc(var(--cut-delay) + var(--cut-dur) + 0.1s) ease forwards;
   transition: background 0.25s, color 0.25s, border-color 0.25s;
 }
 
@@ -194,4 +357,32 @@
   .intro__enter,
   .intro__corner { opacity: 1; animation: none; }
   .intro::after { opacity: 1; animation: none; }
+}
+
+.intro--cutting .intro__glow {
+  animation: intro-glow 1.2s calc(var(--cut-delay) + var(--cut-dur) - 0.6s) ease forwards;
+}
+
+.intro--cutting .intro__cover {
+  animation: intro-shave var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards;
+}
+
+.intro--cutting .intro__clippers {
+  animation: intro-clip-travel var(--cut-dur) var(--cut-delay) var(--cut-ease) forwards;
+}
+
+.intro--cutting .intro__clippers > svg {
+  animation: intro-clip-shake 0.06s var(--cut-delay) linear infinite;
+}
+
+.intro--cutting .intro__bits i {
+  animation: intro-bit 0.85s calc(var(--cut-delay) + var(--i) * 0.15s) ease-out forwards;
+}
+
+.intro--cutting .intro__tagline {
+  animation: rise 0.7s calc(var(--cut-delay) + var(--cut-dur) - 0.2s) ease forwards;
+}
+
+.intro--cutting .intro__enter {
+  animation: rise 0.7s calc(var(--cut-delay) + var(--cut-dur) + 0.1s) ease forwards;
 }

@@ -1,93 +1,81 @@
 /**
- * Synthesized hair-clipper buzz using the Web Audio API.
- * No audio file needed — the motor hum is built from a couple of
- * detuned sawtooth oscillators plus a filtered noise layer for the blades.
+ * Hair-clipper sound for the intro.
+ *
+ * Uses a real recording (public/clippers.mp3, Freesound Community / CC0)
+ * rather than synthesis — a genuine motor has a rasp that oscillators
+ * don't reproduce convincingly.
  */
 
-let ctx = null
+const SRC = '/clippers.mp3'
+const VOLUME = 0.55
+const FADE_MS = 320
 
-function getCtx() {
-  if (!ctx) {
-    const AC = window.AudioContext || window.webkitAudioContext
-    if (!AC) return null
-    ctx = new AC()
+let el = null
+
+function getEl() {
+  if (typeof Audio === 'undefined') return null
+  if (!el) {
+    el = new Audio(SRC)
+    el.preload = 'auto'
+    // The clip is shorter than some intro timings; loop so the buzz
+    // lasts as long as the cut does.
+    el.loop = true
   }
-  return ctx
+  return el
 }
 
-/** Noise buffer reused for the blade-chatter layer. */
-function makeNoiseBuffer(audio, seconds) {
-  const buffer = audio.createBuffer(1, audio.sampleRate * seconds, audio.sampleRate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < data.length; i++) {
-    data[i] = Math.random() * 2 - 1
-  }
-  return buffer
+/** Warm the file up so the first play doesn't stutter. */
+export function preloadClippers() {
+  const a = getEl()
+  if (a) { try { a.load() } catch { /* nothing to do */ } }
+}
+
+function fadeOut(audio, ms) {
+  const steps = 12
+  const startVol = audio.volume
+  let i = 0
+  const timer = setInterval(() => {
+    i++
+    audio.volume = Math.max(0, startVol * (1 - i / steps))
+    if (i >= steps) {
+      clearInterval(timer)
+      audio.pause()
+      audio.currentTime = 0
+      audio.volume = startVol
+    }
+  }, ms / steps)
+  return timer
 }
 
 /**
  * Play the clipper for `duration` seconds.
- * Returns a stop() function so callers can cut it short.
+ *
+ * Returns a stop() function, or null if the browser blocked playback.
+ * The null matters: callers keep listening for a real user gesture
+ * instead of marking the sound as already played.
  */
-export function playClippers(duration = 3) {
-  const audio = getCtx()
-  if (!audio) return () => {}
+export async function playClippers(duration = 3) {
+  const audio = getEl()
+  if (!audio) return null
 
-  // Browsers suspend the context until a user gesture.
-  if (audio.state === 'suspended') audio.resume()
+  audio.currentTime = 0
+  audio.volume = VOLUME
 
-  const now = audio.currentTime
-  const master = audio.createGain()
-  master.gain.setValueAtTime(0, now)
-  master.gain.linearRampToValueAtTime(0.16, now + 0.15)   // spin up
-  master.gain.setValueAtTime(0.16, now + duration - 0.3)
-  master.gain.linearRampToValueAtTime(0, now + duration)  // spin down
-  master.connect(audio.destination)
+  try {
+    await audio.play()
+  } catch {
+    return null // autoplay blocked — caller should retry after a gesture
+  }
 
-  // Motor hum — two slightly detuned saws give it that gritty beat.
-  const motorFilter = audio.createBiquadFilter()
-  motorFilter.type = 'lowpass'
-  motorFilter.frequency.value = 1400
-  motorFilter.Q.value = 6
-  motorFilter.connect(master)
-
-  const oscs = [
-    { freq: 105, gain: 0.6 },
-    { freq: 108, gain: 0.5 },
-    { freq: 212, gain: 0.25 },
-  ].map(({ freq, gain }) => {
-    const osc = audio.createOscillator()
-    osc.type = 'sawtooth'
-    osc.frequency.setValueAtTime(freq * 0.7, now)
-    osc.frequency.linearRampToValueAtTime(freq, now + 0.25) // motor revs up
-    const g = audio.createGain()
-    g.gain.value = gain
-    osc.connect(g).connect(motorFilter)
-    osc.start(now)
-    osc.stop(now + duration)
-    return osc
-  })
-
-  // Blade chatter — bandpassed white noise riding on top.
-  const noise = audio.createBufferSource()
-  noise.buffer = makeNoiseBuffer(audio, duration)
-  noise.loop = true
-  const noiseFilter = audio.createBiquadFilter()
-  noiseFilter.type = 'bandpass'
-  noiseFilter.frequency.value = 3200
-  noiseFilter.Q.value = 1.2
-  const noiseGain = audio.createGain()
-  noiseGain.gain.value = 0.09
-  noise.connect(noiseFilter).connect(noiseGain).connect(master)
-  noise.start(now)
-  noise.stop(now + duration)
+  // Fade and stop at the end of the cut.
+  let fadeTimer = null
+  const endTimer = setTimeout(() => {
+    fadeTimer = fadeOut(audio, FADE_MS)
+  }, Math.max(0, duration * 1000 - FADE_MS))
 
   return function stop() {
-    const t = audio.currentTime
-    master.gain.cancelScheduledValues(t)
-    master.gain.setValueAtTime(master.gain.value, t)
-    master.gain.linearRampToValueAtTime(0, t + 0.12)
-    oscs.forEach(o => { try { o.stop(t + 0.15) } catch {} })
-    try { noise.stop(t + 0.15) } catch {}
+    clearTimeout(endTimer)
+    if (fadeTimer) clearInterval(fadeTimer)
+    fadeOut(audio, 140)
   }
 }
