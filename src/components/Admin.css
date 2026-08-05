@@ -126,6 +126,11 @@
   gap: 4px;
 }
 .admin__dollar { color: #555; font-size: 14px; }
+.admin__input--duration {
+  width: 90px;
+  flex: unset;
+}
+
 .admin__input--price {
   width: 64px;
   background: none;

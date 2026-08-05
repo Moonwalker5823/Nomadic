@@ -48,7 +48,7 @@ export default function Footer({ onAdminTrigger }) {
           <a href="tel:6193543083">(619) 354-3083</a>
         </div>
 
-        <p className="footer__copy">© 2025 Nomadic. All rights reserved.</p>
+        <p className="footer__copy">© {new Date().getFullYear()} Nomadic. All rights reserved.</p>
       </div>
     </footer>
   )

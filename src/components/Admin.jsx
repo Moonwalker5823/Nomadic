@@ -41,7 +41,7 @@ function ServicesTab({ services, saveServices }) {
 
   const update = (id, key, val) => setList(l => l.map(s => s.id === id ? { ...s, [key]: val } : s))
   const remove = (id) => setList(l => l.filter(s => s.id !== id))
-  const add = () => setList(l => [...l, { id: Date.now(), name: '', price: 0 }])
+  const add = () => setList(l => [...l, { id: Date.now(), name: '', price: 0, duration: '' }])
   const save = () => saveServices(list)
 
   return (
@@ -54,6 +54,12 @@ function ServicesTab({ services, saveServices }) {
               value={s.name}
               onChange={e => update(s.id, 'name', e.target.value)}
               placeholder="Service name"
+            />
+            <input
+              className="admin__input admin__input--duration"
+              value={s.duration || ''}
+              onChange={e => update(s.id, 'duration', e.target.value)}
+              placeholder="e.g. 45 min"
             />
             <div className="admin__price-wrap">
               <span className="admin__dollar">$</span>

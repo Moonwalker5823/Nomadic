@@ -19,7 +19,6 @@ export default function Booking() {
     if (!form.service) e.service = true
     if (!form.date) e.date = true
     if (!form.time) e.time = true
-    if (!form.address.trim()) e.address = true
     return e
   }
 
@@ -76,7 +75,7 @@ export default function Booking() {
         <div className="booking__row">
           <div className={`booking__field ${err('date')}`}>
             <label>Preferred Date</label>
-            <input type="date" value={form.date} onChange={e => set('date', e.target.value)} />
+            <input type="date" value={form.date} min={new Date().toISOString().split('T')[0]} onChange={e => set('date', e.target.value)} />
           </div>
           <div className={`booking__field ${err('time')}`}>
             <label>Preferred Time</label>
@@ -84,8 +83,8 @@ export default function Booking() {
           </div>
         </div>
 
-        <div className={`booking__field ${err('address')}`}>
-          <label>Your Address <span className="booking__optional">(for reference)</span></label>
+        <div className="booking__field">
+          <label>Your Address <span className="booking__optional">(optional)</span></label>
           <textarea rows={3} value={form.address} onChange={e => set('address', e.target.value)} placeholder="Your address or area" />
         </div>
 

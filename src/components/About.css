@@ -39,6 +39,7 @@
   line-height: 1.85;
   color: #bbb;
   margin-bottom: 32px;
+  white-space: pre-line;
 }
 
 .about__sep {

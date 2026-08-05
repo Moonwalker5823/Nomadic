@@ -5,7 +5,7 @@ export default function Hero() {
   return (
     <section className="hero" id="home">
       <div className="hero__content">
-        <div className="hero__eyebrow">Est. Your City</div>
+        <div className="hero__eyebrow">San Diego, CA</div>
         <h1 className="hero__h1">
           <span className="hero__h1-white">SHARP CUTS.</span>
           <span className="hero__h1-gold">YOUR BARBER.</span>

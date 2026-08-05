@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState } from 'react'
 
 const DEFAULT_SERVICES = [
   { id: 1,  name: 'Haircut (All Styles)',        price: 35, duration: '45 min' },

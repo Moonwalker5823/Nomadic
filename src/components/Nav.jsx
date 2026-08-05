@@ -20,13 +20,17 @@ export default function Nav() {
   }, [])
 
   useEffect(() => {
-    const sections = document.querySelectorAll('section[id]')
-    const observer = new IntersectionObserver(
-      entries => entries.forEach(e => e.isIntersecting && setActive(e.target.id)),
-      { threshold: 0.35 }
-    )
-    sections.forEach(s => observer.observe(s))
-    return () => observer.disconnect()
+    // Small delay ensures sections are in the DOM after intro unmounts
+    const timer = setTimeout(() => {
+      const sections = document.querySelectorAll('section[id]')
+      const observer = new IntersectionObserver(
+        entries => entries.forEach(e => e.isIntersecting && setActive(e.target.id)),
+        { threshold: 0.3 }
+      )
+      sections.forEach(s => observer.observe(s))
+      return () => observer.disconnect()
+    }, 100)
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
