@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { playClippers } from '../utils/clipperSound'
+import { playClippers, stopClippers } from '../utils/clipperSound'
 import './Intro.css'
 
 /** Matches the --cut-dur / --cut-delay values in Intro.css. */
@@ -44,6 +44,7 @@ export default function Intro({ onDone }) {
       cancelled = true
       clearTimeout(failsafe)
       stopRef.current?.()
+      stopClippers() // the intro is gone; nothing should still be buzzing
     }
   }, [muted])
 
@@ -71,6 +72,7 @@ export default function Intro({ onDone }) {
 
   const handleEnter = () => {
     stopRef.current?.()
+    stopClippers() // covers the case where stop() has not resolved yet
     setLeaving(true)
     setTimeout(() => {
       sessionStorage.setItem('nomadic_intro_seen', '1')

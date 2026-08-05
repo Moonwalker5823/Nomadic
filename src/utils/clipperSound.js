@@ -68,15 +68,33 @@ async function ensureGraph(audio) {
 }
 
 function fadeOut(ms) {
-  if (!gainNode || !ctx) return null
-  const t = ctx.currentTime
-  gainNode.gain.cancelScheduledValues(t)
-  gainNode.gain.setValueAtTime(gainNode.gain.value, t)
-  gainNode.gain.linearRampToValueAtTime(0.0001, t + ms / 1000)
+  // Ramp the gain when the graph exists, but the element must be paused
+  // either way — bailing early here left the clipper buzzing into the
+  // home page whenever the graph had not been built.
+  if (gainNode && ctx) {
+    const t = ctx.currentTime
+    gainNode.gain.cancelScheduledValues(t)
+    gainNode.gain.setValueAtTime(gainNode.gain.value, t)
+    gainNode.gain.linearRampToValueAtTime(0.0001, t + ms / 1000)
+  }
   return setTimeout(() => {
     if (el) { el.pause(); el.currentTime = 0 }
     if (gainNode && ctx) gainNode.gain.setValueAtTime(GAIN, ctx.currentTime)
   }, ms)
+}
+
+/**
+ * Hard stop, safe to call at any time. Used when leaving the intro, where
+ * the per-play stop() handle may not exist yet — playClippers resolves
+ * asynchronously, so a fast Enter click can beat it.
+ */
+export function stopClippers() {
+  if (gainNode && ctx) {
+    const t = ctx.currentTime
+    gainNode.gain.cancelScheduledValues(t)
+    gainNode.gain.setValueAtTime(0.0001, t)
+  }
+  if (el) { el.pause(); el.currentTime = 0 }
 }
 
 /**
