@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { startTrack, stopTrack } from '../utils/lofiTrack'
+import { startTrack, stopTrack } from '../utils/beat'
 import './MusicToggle.css'
 
 /**
