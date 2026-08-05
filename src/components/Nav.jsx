@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import './Nav.css'
 
 const LINKS = [
@@ -34,7 +35,9 @@ export default function Nav() {
   }, [])
 
   useEffect(() => {
-    document.body.classList.toggle('no-scroll', open)
+    if (!open) return
+    lockScroll()
+    return unlockScroll
   }, [open])
 
   return (

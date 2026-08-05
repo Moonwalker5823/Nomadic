@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useApp } from '../context/AppContext'
 import { useReveal } from '../hooks/useReveal'
+import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import './Picks.css'
 
 export default function Picks() {
@@ -13,20 +14,25 @@ export default function Picks() {
   const prev = useCallback(() => setLightbox(i => (i - 1 + gallery.length) % gallery.length), [gallery.length])
   const next = useCallback(() => setLightbox(i => (i + 1) % gallery.length), [gallery.length])
 
+  const isOpen = lightbox !== null
+
   useEffect(() => {
-    if (lightbox === null) return
+    if (!isOpen) return
     const onKey = (e) => {
       if (e.key === 'Escape') close()
       if (e.key === 'ArrowLeft') prev()
       if (e.key === 'ArrowRight') next()
     }
     window.addEventListener('keydown', onKey)
-    document.body.classList.add('no-scroll')
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.classList.remove('no-scroll')
-    }
-  }, [lightbox, close, prev, next])
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, close, prev, next])
+
+  // Keyed on open/closed only, so arrow navigation doesn't churn the lock.
+  useEffect(() => {
+    if (!isOpen) return
+    lockScroll()
+    return unlockScroll
+  }, [isOpen])
 
   return (
     <section className="picks" id="picks">
